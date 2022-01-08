@@ -1,0 +1,6 @@
+com\servicedata\service\impl\StudentServiceImpl.class
+com\servicedata\service\StudentService.class
+com\servicedata\entity\Student.class
+com\servicedata\repository\StudentRepository.class
+com\servicedata\controller\StudentController.class
+com\servicedata\SpringBootStudentApplication.class
