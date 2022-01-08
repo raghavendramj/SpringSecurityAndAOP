@@ -1,0 +1,143 @@
+Data access layer and service layer
+---------------------------------------
+Database:- MySQL/PostGres
+
+Step 1:-
+	Creating Spring Boot Project :- https://start.spring.io/
+	Dependecies Selected :-
+		spring-web -> RestFul API's and Spring MVC implementations.
+		spring-boot-starter-data-jpa -> Database (MySQL) Opeartions
+		mysql-connector-java -> Driver for MySQL
+		lombok -> for reducing boilerplate code.
+		spring-security -> authenticated
+		
+
+-> Layers
+		-> Data Access Layer
+			@Entity
+			Student
+				-> id, firstName, lastName, email
+			@Repository
+				StudentRepository(I) -> extends JpaRepository<Student, Long>
+					By default => findById, findAll, save, deleteById, delete
+					Student findByFirstNameAndLastName(String firstName and lastName);
+					Student findByEmail(String email);
+
+		-> Service Layer
+			@Service
+				StudentService(I)
+				C + R  + U + D
+
+				C -> Student saveStudent(Student student);
+
+				R -> List<Student>getStudents(); -> findAll
+				R -> Student  getStudentById(Long Id); -> findById
+				Database:
+						1 raghav mj raghav@gmail.com
+						2 keshav anand keshav@gmail.com
+						findById(25) => empty => Optional Class =>Entity or empty
+						
+				R -> Student getStudentByName(String firstName, String lastName);				
+				R -> Student getStudentByEmail(String email);
+
+				U -> Student udpateStudent(Long id, Student student);
+				D -> Student deleteStudent(Long id);
+
+		-> Controller Layer
+			->@RestContoller
+
+			@PostMapping("/students")
+				Student saveStudent(@RequestBody Student student);
+				URL :- http://localhost:8083/students
+					@RequestBody => { "firstName":"raghav", "lastName":"mj", "email":"raghav@gmail.com" }
+				DB:- insert into student (firstName, lastName, email) values ("raghav", "mj", "raghav@gmail")
+
+			@GetMapping("/students")
+			List<Student> getStudents()
+				URL :- http://localhost:8083/students
+				DB:- select * from student;
+
+			@GetMapping("/students/{pathVarStudentId}")
+			Student getStudentById(@PathVariable("pathVarStudentId") Long studentId)
+				URL: http://localhost:8083/students/5
+				DB:- select * from student where id=5;
+
+			@GetMapping("/searcByEmail")
+			List<Students> getStudentByName(@RequestParam("emailId") String emailId)
+				URL:  http://localhost:8083/searchByEmail?email=raghav@gmail.com
+				DB:- select * from student where email=raghav@gmail.com;
+
+			@GetMapping("/searcByName")
+			List<Students> getStudentByName(@RequestParam("firstName") String firstName,
+																		 @RequestParam("lastName")String lastName);
+				URL: http://localhost:8083/searchByName?firstName=raghav&lastName=mj
+				DB:- select * from student where firstName="raghav" and lastName ="mj";
+
+			@PutMapping("/students/{id}")
+			Student updateStudent(@PathVariable("pathVarStudentId") Long studentId,  @RequestBody Student student)
+				URL: http://localhost:8083/students/5
+				@PathVariable => 5
+				@RequestBody => { "id": 5, "firstName": "brijesh", "lastName": "patel", "email": "brijeshpatel@gmail.com" }
+				DB: update student set email="brijeshpatel@gmail.com, first_name="brijesh", last_name="patel"where id=5
+
+			@DeleteMapping("/students/{id}")
+			Student deleteStudent(@PathVariable("pathVarStudentId") Long studentId)
+				URL:- http://localhost:8083/students/5
+				DB:- delete from student where id=5
+
+	Difference between @PathVariable and @PathParam
+		@PathVariable is from spring and @PathParam is from JAX-RS.
+		@PathParam can use with REST only, where @PathVariable used in Spring so it works in MVC and REST.
+		
+		
+	Aspect Oriented Programming		
+	@ControllerAdvice	
+	@ExceptionHandler
+	
+	Spring Security
+	1. spring-boot-starter-security -> redirect my access to a login page with 
+		By default
+			username :- user
+		password is auto generated
+			printed in console. -> Using generated security password: 64743c6f-be7b-4cdd-8a20-fade924636f6
+	2. Added security username and password configs in apps.properties
+		spring.security.user.name=raghav
+		spring.security.user.password=raghav@123
+		
+	3. UserServiceImpl
+		-> spring security user object -> hardcoded username and password -> admin, password
+		-> NoOpPasswordEncoder
+	4. Database Authentication
+		-> Username, Password from database.
+		-> BCryptedPasswordEncoder
+	5. Role Based	
+		-> user_roles
+	
+	https://bcrypt-generator.com/ -> BCrypted Password Generator
+	1234 -> $2a$12$7fjm8AViCRF14hX9hcs9fO7FHlqFtcX3S3Ztl1VfHhGR1kMhaZYXK
+	keshav -> $2a$12$MXC0RnFLUJrAMVDA/xlK5e5tPl1oGwlGhb8lh3E8ox6TqFqweQ10
+	
+	User
+		id, username, password ->
+		insert into user(username, password) values ('raghav', '$2a$12$7fjm8AViCRF14hX9hcs9fO7FHlqFtcX3S3Ztl1VfHhGR1kMhaZYXK');
+		insert into user(username, password) values ('keshav', '$2a$12$MXC0RnFLUJrAMVDA/xlK5e5tPl1oGwlGhb8lh3E8ox6TqFqweQ10.');
+	Role
+			insert into role(name) values ("USER"); 
+			insert into role(name) values ("ADMIN");
+		
+	user_roles
+			insert into user_roles values(1, 1);
+			insert into user_roles values(2, 2);			
+			
+	raghav -> USER
+		Can access
+			http://localhost:8083/students
+		Can't access
+			http://localhost:8083/searchByEmail?email=raghav@gmail.com
+					
+	keshav -> ADMIN
+		Can access
+			http://localhost:8083/students 
+			http://localhost:8083/searchByEmail?email=raghav@gmail.com
+			
+			
